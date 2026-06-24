@@ -305,9 +305,7 @@ var object_definitions: Dictionary = {
 		"display_name": "Heat Lamp",
 		"kind": PlaceableObject.ObjectKind.DEVICE,
 		"radius": 3,
-		"build_cost": {
-			"glass_needle": 1
-		},
+		"build_cost": {},
 		"can_be_toggled": true,
 		"signal_outputs": {
 			"heat": 35.0,
