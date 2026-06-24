@@ -1,0 +1,121 @@
+[gd_scene format=3 uid="uid://dpa6aqeu13x2u"]
+
+[ext_resource type="Script" uid="uid://o0o1jx1oiee2" path="res://scripts/systems/gridsystem.gd" id="1_elqb8"]
+[ext_resource type="Script" uid="uid://dlcrjr53x4xj6" path="res://scripts/debug/GridDebugView.gd" id="2_rvslj"]
+[ext_resource type="Script" uid="uid://bnrb0ttqoyg0a" path="res://scripts/systems/BuildSystem.gd" id="3_0bbpv"]
+[ext_resource type="Script" uid="uid://b8ph48m7hhtfj" path="res://scripts/systems/PlantSystem.gd" id="4_rarhs"]
+[ext_resource type="Script" uid="uid://cw15duq0oeulx" path="res://scripts/systems/SignalMapSystem.gd" id="4_vcsgt"]
+[ext_resource type="PackedScene" uid="uid://gdct1uw6gjgx" path="res://scenes/PlantInspector.tscn" id="6_c01mt"]
+[ext_resource type="Script" uid="uid://t3p43iexk1gi" path="res://scripts/systems/SelectionSystem.gd" id="7_nxtc6"]
+[ext_resource type="Script" uid="uid://dd1rafg7bwun8" path="res://scripts/ui/InventoryPanel.gd" id="7_wp0k4"]
+[ext_resource type="Script" uid="uid://qbq4m77kyc1f" path="res://scripts/ui/BuildPanel.gd" id="8_bjd11"]
+[ext_resource type="Script" uid="uid://u2s8p2fv3obn" path="res://scripts/debug/SignalOverlay.gd" id="8_jlsqs"]
+[ext_resource type="Script" uid="uid://b1q0idbl8cfqg" path="res://scripts/systems/InventorySystem.gd" id="9_q8u5g"]
+[ext_resource type="Script" uid="uid://df444p2uqgpup" path="res://scripts/systems/HarvestSystem.gd" id="10_lhr70"]
+
+[node name="Main" type="Node2D" unique_id=1640505783]
+
+[node name="GridSystem" type="Node2D" parent="." unique_id=436974779]
+script = ExtResource("1_elqb8")
+
+[node name="GridDebugView" type="Node2D" parent="." unique_id=1767147163 node_paths=PackedStringArray("grid_system")]
+script = ExtResource("2_rvslj")
+grid_system = NodePath("../GridSystem")
+
+[node name="BuildSystem" type="Node2D" parent="." unique_id=1980696622 node_paths=PackedStringArray("grid_system", "object_root", "inventory_system")]
+script = ExtResource("3_0bbpv")
+grid_system = NodePath("../GridSystem")
+object_root = NodePath("../ObjectRoot")
+inventory_system = NodePath("../InventorySystem")
+
+[node name="ObjectRoot" type="Node2D" parent="." unique_id=279576597]
+
+[node name="SignalMapSystem" type="Node2D" parent="." unique_id=1405832760 node_paths=PackedStringArray("grid_system", "object_root")]
+script = ExtResource("4_vcsgt")
+grid_system = NodePath("../GridSystem")
+object_root = NodePath("../ObjectRoot")
+
+[node name="PlantSystem" type="Node2D" parent="." unique_id=1460940519 node_paths=PackedStringArray("grid_system", "object_root", "signal_map_system")]
+script = ExtResource("4_rarhs")
+grid_system = NodePath("../GridSystem")
+object_root = NodePath("../ObjectRoot")
+signal_map_system = NodePath("../SignalMapSystem")
+
+[node name="UIRoot" type="CanvasLayer" parent="." unique_id=738630192]
+
+[node name="PlantInspector" parent="UIRoot" unique_id=301042676 instance=ExtResource("6_c01mt")]
+
+[node name="InventoryPanel" type="PanelContainer" parent="UIRoot" unique_id=1980427145 node_paths=PackedStringArray("inventory_system")]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 280.0
+offset_bottom = 180.0
+script = ExtResource("7_wp0k4")
+inventory_system = NodePath("../../InventorySystem")
+
+[node name="MarginContainer" type="MarginContainer" parent="UIRoot/InventoryPanel" unique_id=1351360184]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UIRoot/InventoryPanel/MarginContainer" unique_id=1052988433]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="UIRoot/InventoryPanel/MarginContainer/VBoxContainer" unique_id=264521367]
+layout_mode = 2
+
+[node name="ItemsLabel" type="Label" parent="UIRoot/InventoryPanel/MarginContainer/VBoxContainer" unique_id=310303978]
+layout_mode = 2
+
+[node name="BuildPanel" type="PanelContainer" parent="UIRoot" unique_id=1632229012 node_paths=PackedStringArray("build_system")]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -517.0
+offset_top = -730.0
+grow_horizontal = 0
+grow_vertical = 0
+script = ExtResource("8_bjd11")
+build_system = NodePath("../../BuildSystem")
+
+[node name="MarginContainer" type="MarginContainer" parent="UIRoot/BuildPanel" unique_id=69931840]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UIRoot/BuildPanel/MarginContainer" unique_id=1490129467]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="UIRoot/BuildPanel/MarginContainer/VBoxContainer" unique_id=435367694]
+layout_mode = 2
+
+[node name="SelectedLabel" type="Label" parent="UIRoot/BuildPanel/MarginContainer/VBoxContainer" unique_id=1049637985]
+layout_mode = 2
+
+[node name="CostLabel" type="Label" parent="UIRoot/BuildPanel/MarginContainer/VBoxContainer" unique_id=1837631484]
+layout_mode = 2
+
+[node name="HelpLabel" type="Label" parent="UIRoot/BuildPanel/MarginContainer/VBoxContainer" unique_id=1995068667]
+layout_mode = 2
+
+[node name="Separator" type="HSeparator" parent="UIRoot/BuildPanel/MarginContainer/VBoxContainer" unique_id=2107309366]
+layout_mode = 2
+
+[node name="SelectionSystem" type="Node2D" parent="." unique_id=956946044 node_paths=PackedStringArray("grid_system", "plant_inspector")]
+script = ExtResource("7_nxtc6")
+grid_system = NodePath("../GridSystem")
+plant_inspector = NodePath("../UIRoot/PlantInspector")
+
+[node name="SignalOverlay" type="Node2D" parent="." unique_id=1232515798 node_paths=PackedStringArray("grid_system", "signal_map_system")]
+script = ExtResource("8_jlsqs")
+grid_system = NodePath("../GridSystem")
+signal_map_system = NodePath("../SignalMapSystem")
+
+[node name="InventorySystem" type="Node2D" parent="." unique_id=1220725978]
+script = ExtResource("9_q8u5g")
+
+[node name="HarvestSystem" type="Node2D" parent="." unique_id=1012296882 node_paths=PackedStringArray("grid_system", "object_root", "inventory_system")]
+script = ExtResource("10_lhr70")
+grid_system = NodePath("../GridSystem")
+object_root = NodePath("../ObjectRoot")
+inventory_system = NodePath("../InventorySystem")
+
+[node name="TimerSystem" type="Node2D" parent="." unique_id=339959663]
