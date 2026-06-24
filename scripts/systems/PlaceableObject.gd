@@ -30,6 +30,10 @@ var timer_is_on: bool = true
 var likes: Dictionary = {}
 var dislikes: Dictionary = {}
 var contradictions: Array = []
+var required_phases: Dictionary = {}
+var phase_memory: Dictionary = {}
+var phase_score: float = 0.0
+
 var growth_threshold: float = 50.0
 var max_growth: float = 100.0
 var output_item_id: String = ""
@@ -74,6 +78,14 @@ func setup(
 	likes = Dictionary(definition.get("likes", {}))
 	dislikes = Dictionary(definition.get("dislikes", {}))
 	contradictions = Array(definition.get("contradictions", []))
+	required_phases = Dictionary(definition.get("required_phases", {}))
+	phase_memory.clear()
+
+	for phase_name_variant in required_phases.keys():
+		phase_memory[String(phase_name_variant)] = 0.0
+
+	phase_score = 0.0
+
 	growth_threshold = float(definition.get("growth_threshold", 50.0))
 	max_growth = float(definition.get("max_growth", 100.0))
 
@@ -119,7 +131,9 @@ func set_plant_state(
 	new_growth: float,
 	new_positive_signals: Dictionary = {},
 	new_negative_signals: Dictionary = {},
-	new_raw_signals: Dictionary = {}
+	new_raw_signals: Dictionary = {},
+	new_phase_memory: Dictionary = {},
+	new_phase_score: float = 0.0
 ) -> void:
 	belief = new_belief
 	suspicion = new_suspicion
@@ -127,6 +141,11 @@ func set_plant_state(
 	last_positive_signals = new_positive_signals
 	last_negative_signals = new_negative_signals
 	last_raw_signals = new_raw_signals
+
+	if not new_phase_memory.is_empty():
+		phase_memory = new_phase_memory
+
+	phase_score = new_phase_score
 	queue_redraw()
 
 func harvest() -> Dictionary:
@@ -145,6 +164,17 @@ func harvest() -> Dictionary:
 		"amount": output_amount
 	}
 
+func get_average_phase_memory() -> float:
+	if phase_memory.is_empty():
+		return 0.0
+
+	var total: float = 0.0
+
+	for phase_name_variant in phase_memory.keys():
+		total += float(phase_memory[phase_name_variant])
+
+	return total / float(phase_memory.size())
+
 func _draw() -> void:
 	var half: float = cell_size * 0.5
 	var padding: float = 8.0
@@ -160,6 +190,21 @@ func _draw() -> void:
 
 		"moon_bean":
 			draw_moon_bean()
+
+		"impossible_orchid":
+			draw_impossible_orchid()
+
+		"ember_fern":
+			draw_ember_fern()
+
+		"mirror_reed":
+			draw_mirror_reed()
+
+		"chorus_bulb":
+			draw_chorus_bulb()
+
+		"echo_blossom":
+			draw_echo_blossom()
 
 		"heat_lamp":
 			draw_heat_lamp(top_left, size)
@@ -187,6 +232,15 @@ func _draw() -> void:
 
 		"timer":
 			draw_timer()
+
+		"compost_heater":
+			draw_compost_heater()
+
+		"wind_turbine":
+			draw_wind_turbine()
+
+		"choir_bell":
+			draw_choir_bell()
 
 		_:
 			draw_rect(Rect2(top_left, size), Color(1.0, 1.0, 1.0), true)
@@ -293,6 +347,127 @@ func draw_moon_bean() -> void:
 		draw_mature_ring(Color(0.75, 0.9, 1.0, 0.95))
 
 	draw_growth_bar(growth_ratio, Color(0.55, 0.75, 1.0, 0.9))
+
+func draw_impossible_orchid() -> void:
+	var growth_ratio: float = float(clamp(growth / max_growth, 0.0, 1.0))
+	var memory_ratio: float = float(clamp(get_average_phase_memory() / 100.0, 0.0, 1.0))
+
+	var stem_height: float = float(lerp(cell_size * 0.18, cell_size * 0.36, growth_ratio))
+	var petal_radius: float = float(lerp(cell_size * 0.08, cell_size * 0.14, growth_ratio))
+
+	var stem_color: Color = Color(0.25, 0.55, 0.35)
+	var petal_a: Color = Color(1.0, 0.7, 0.25)
+	var petal_b: Color = Color(0.45, 0.65, 1.0)
+
+	if memory_ratio < 0.35:
+		petal_a = Color(0.3, 0.25, 0.2)
+		petal_b = Color(0.18, 0.2, 0.32)
+
+	draw_line(
+		Vector2(0.0, cell_size * 0.18),
+		Vector2(0.0, -stem_height),
+		stem_color,
+		4.0
+	)
+
+	draw_circle(Vector2(-cell_size * 0.09, -stem_height * 0.45), cell_size * 0.09, Color(0.12, 0.35, 0.18))
+	draw_circle(Vector2(cell_size * 0.09, -stem_height * 0.25), cell_size * 0.09, Color(0.12, 0.35, 0.18))
+
+	var flower_center: Vector2 = Vector2(0.0, -stem_height)
+	draw_circle(flower_center + Vector2(-petal_radius, 0.0), petal_radius, petal_a)
+	draw_circle(flower_center + Vector2(petal_radius, 0.0), petal_radius, petal_b)
+	draw_circle(flower_center + Vector2(0.0, -petal_radius), petal_radius, petal_b)
+	draw_circle(flower_center + Vector2(0.0, petal_radius), petal_radius, petal_a)
+	draw_circle(flower_center, petal_radius * 0.7, Color(1.0, 1.0, 0.9))
+
+	if is_mature():
+		draw_mature_ring(Color(1.0, 0.95, 0.45, 0.95))
+
+	draw_growth_bar(growth_ratio, Color(1.0, 0.85, 0.35, 0.9))
+
+func draw_ember_fern() -> void:
+	var growth_ratio: float = float(clamp(growth / max_growth, 0.0, 1.0))
+	var leaf_height: float = float(lerp(cell_size * 0.18, cell_size * 0.34, growth_ratio))
+	var leaf_color: Color = Color(0.7, 0.3, 0.15)
+
+	if belief >= growth_threshold:
+		leaf_color = Color(1.0, 0.45, 0.18)
+	elif belief < 20.0:
+		leaf_color = Color(0.28, 0.18, 0.16)
+
+	draw_line(Vector2(0.0, cell_size * 0.18), Vector2(0.0, -leaf_height * 0.45), Color(0.35, 0.28, 0.18), 3.0)
+	draw_circle(Vector2(-10.0, -4.0), cell_size * 0.12, leaf_color)
+	draw_circle(Vector2(10.0, -10.0), cell_size * 0.11, leaf_color)
+	draw_circle(Vector2(0.0, -leaf_height * 0.45), cell_size * 0.13, Color(1.0, 0.75, 0.18))
+
+	if is_mature():
+		draw_mature_ring(Color(1.0, 0.65, 0.25, 0.95))
+
+	draw_growth_bar(growth_ratio, Color(1.0, 0.5, 0.2, 0.9))
+
+func draw_mirror_reed() -> void:
+	var growth_ratio: float = float(clamp(growth / max_growth, 0.0, 1.0))
+	var stem_height: float = float(lerp(cell_size * 0.16, cell_size * 0.38, growth_ratio))
+	var stem_color: Color = Color(0.55, 0.8, 0.95)
+
+	if belief < 20.0:
+		stem_color = Color(0.28, 0.35, 0.42)
+
+	draw_line(Vector2(-6.0, cell_size * 0.16), Vector2(-2.0, -stem_height * 0.45), stem_color, 3.0)
+	draw_line(Vector2(6.0, cell_size * 0.16), Vector2(2.0, -stem_height * 0.55), stem_color, 3.0)
+	draw_circle(Vector2(-6.0, -stem_height * 0.25), cell_size * 0.08, Color(0.82, 0.95, 1.0))
+	draw_circle(Vector2(8.0, -stem_height * 0.5), cell_size * 0.1, Color(0.72, 0.9, 1.0))
+	draw_circle(Vector2(1.0, -stem_height * 0.62), cell_size * 0.06, Color(1.0, 1.0, 1.0))
+
+	if is_mature():
+		draw_mature_ring(Color(0.75, 0.95, 1.0, 0.95))
+
+	draw_growth_bar(growth_ratio, Color(0.65, 0.9, 1.0, 0.9))
+
+func draw_chorus_bulb() -> void:
+	var growth_ratio: float = float(clamp(growth / max_growth, 0.0, 1.0))
+	var bulb_radius: float = float(lerp(cell_size * 0.12, cell_size * 0.2, growth_ratio))
+	var bulb_color: Color = Color(0.9, 0.75, 0.25)
+
+	if belief >= growth_threshold:
+		bulb_color = Color(1.0, 0.9, 0.28)
+	elif belief < 20.0:
+		bulb_color = Color(0.28, 0.24, 0.16)
+
+	draw_circle(Vector2.ZERO, bulb_radius * 1.3, Color(0.18, 0.55, 0.25))
+	draw_circle(Vector2.ZERO, bulb_radius, bulb_color)
+	draw_circle(Vector2(-10.0, -6.0), cell_size * 0.07, Color(0.85, 1.0, 0.55))
+	draw_circle(Vector2(10.0, -6.0), cell_size * 0.07, Color(0.85, 1.0, 0.55))
+	draw_circle(Vector2(0.0, -16.0), cell_size * 0.06, Color(0.85, 1.0, 0.55))
+
+	if is_mature():
+		draw_mature_ring(Color(1.0, 0.95, 0.55, 0.95))
+
+	draw_growth_bar(growth_ratio, Color(1.0, 0.9, 0.4, 0.9))
+
+func draw_echo_blossom() -> void:
+	var growth_ratio: float = float(clamp(growth / max_growth, 0.0, 1.0))
+	var memory_ratio: float = float(clamp(get_average_phase_memory() / 100.0, 0.0, 1.0))
+	var center: Vector2 = Vector2(0.0, -cell_size * 0.08)
+	var petal_radius: float = float(lerp(cell_size * 0.07, cell_size * 0.12, growth_ratio))
+	var left_color: Color = Color(0.95, 0.8, 0.35)
+	var right_color: Color = Color(0.6, 0.85, 1.0)
+
+	if memory_ratio < 0.35:
+		left_color = Color(0.35, 0.28, 0.18)
+		right_color = Color(0.2, 0.24, 0.34)
+
+	draw_line(Vector2(0.0, cell_size * 0.18), Vector2(0.0, -cell_size * 0.12), Color(0.24, 0.5, 0.3), 4.0)
+	draw_circle(center + Vector2(-petal_radius * 1.2, 0.0), petal_radius, left_color)
+	draw_circle(center + Vector2(petal_radius * 1.2, 0.0), petal_radius, right_color)
+	draw_circle(center + Vector2(0.0, -petal_radius * 1.15), petal_radius, right_color)
+	draw_circle(center + Vector2(0.0, petal_radius * 1.15), petal_radius, left_color)
+	draw_circle(center, petal_radius * 0.65, Color(1.0, 1.0, 0.95))
+
+	if is_mature():
+		draw_mature_ring(Color(0.95, 0.95, 1.0, 0.95))
+
+	draw_growth_bar(growth_ratio, Color(0.82, 0.92, 1.0, 0.9))
 
 func draw_mature_ring(ring_color: Color) -> void:
 	draw_arc(
@@ -438,3 +613,37 @@ func draw_timer() -> void:
 
 	draw_line(Vector2.ZERO, Vector2(0.0, -cell_size * 0.16), outline_color, 2.0)
 	draw_line(Vector2.ZERO, Vector2(cell_size * 0.12, 0.0), outline_color, 2.0)
+
+func draw_compost_heater() -> void:
+	var half: float = cell_size * 0.5
+	var padding: float = 8.0
+	var size: Vector2 = Vector2(cell_size - padding * 2.0, cell_size - padding * 2.0)
+	var top_left: Vector2 = Vector2(-half + padding, -half + padding)
+
+	draw_rect(Rect2(top_left, size), Color(0.3, 0.18, 0.12), true)
+	draw_rect(Rect2(top_left, size), Color(0.92, 0.48, 0.2), false, 2.0)
+	draw_circle(Vector2(-6.0, -4.0), 4.0, Color(1.0, 0.58, 0.18))
+	draw_circle(Vector2(4.0, -10.0), 3.0, Color(0.55, 0.85, 0.3, 0.7))
+	draw_circle(Vector2(10.0, -2.0), 3.0, Color(1.0, 0.72, 0.25, 0.8))
+
+func draw_wind_turbine() -> void:
+	var body_color: Color = Color(0.28, 0.34, 0.4)
+	var blade_color: Color = Color(0.75, 0.88, 1.0)
+
+	draw_line(Vector2(0.0, 14.0), Vector2(0.0, -8.0), body_color, 4.0)
+	draw_circle(Vector2(0.0, -8.0), 4.5, blade_color)
+	draw_line(Vector2(0.0, -8.0), Vector2(0.0, -18.0), blade_color, 3.0)
+	draw_line(Vector2(0.0, -8.0), Vector2(-10.0, -3.0), blade_color, 3.0)
+	draw_line(Vector2(0.0, -8.0), Vector2(10.0, -3.0), blade_color, 3.0)
+
+func draw_choir_bell() -> void:
+	var half: float = cell_size * 0.5
+	var padding: float = 8.0
+	var size: Vector2 = Vector2(cell_size - padding * 2.0, cell_size - padding * 2.0)
+	var top_left: Vector2 = Vector2(-half + padding, -half + padding)
+
+	draw_rect(Rect2(top_left, size), Color(0.18, 0.18, 0.24), true)
+	draw_rect(Rect2(top_left, size), Color(0.95, 0.88, 0.45), false, 2.0)
+	draw_circle(Vector2.ZERO, cell_size * 0.16, Color(0.95, 0.88, 0.45))
+	draw_line(Vector2(-14.0, -12.0), Vector2(14.0, -12.0), Color(0.75, 0.8, 1.0), 2.0)
+	draw_line(Vector2(0.0, 0.0), Vector2(0.0, 10.0), Color(0.75, 0.8, 1.0), 2.0)

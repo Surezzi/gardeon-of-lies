@@ -3,45 +3,50 @@
 [ext_resource type="Script" uid="uid://dv2fshogd04sl" path="res://scripts/ui/PlantInspector.gd" id="1_qu2vg"]
 
 [node name="PlantInspector" type="PanelContainer" unique_id=301042676]
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -372.0
-offset_top = 20.0
-offset_right = -92.0
-offset_bottom = 340.0
-grow_horizontal = 0
 script = ExtResource("1_qu2vg")
 
 [node name="MarginContainer" type="MarginContainer" parent="." unique_id=1433554453]
 layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=1157053124]
 layout_mode = 2
+theme_override_constants/separation = 6
 
 [node name="TitleLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1892016411]
 layout_mode = 2
+autowrap_mode = 3
 
 [node name="BeliefLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=135669024]
 layout_mode = 2
+autowrap_mode = 3
 
 [node name="SuspicionLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1844814837]
 layout_mode = 2
+autowrap_mode = 3
 
 [node name="GrowthLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=492154727]
 layout_mode = 2
+autowrap_mode = 3
 
 [node name="PositiveTitleLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=961046732]
 layout_mode = 2
+autowrap_mode = 3
 
 [node name="PositiveSignalsLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=741764633]
 layout_mode = 2
+autowrap_mode = 3
 
 [node name="NegativeTitleLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=318972984]
 layout_mode = 2
+autowrap_mode = 3
 
 [node name="NegativeSignalsLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1873854877]
 layout_mode = 2
+autowrap_mode = 3
 
 [node name="Separator" type="HSeparator" parent="MarginContainer/VBoxContainer" unique_id=1184119150]
 layout_mode = 2

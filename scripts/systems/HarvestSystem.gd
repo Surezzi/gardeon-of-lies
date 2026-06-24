@@ -7,6 +7,7 @@ class_name HarvestSystem
 
 var auto_harvest_interval: float = 0.5
 var auto_harvest_timer: float = 0.0
+var log_actions: bool = false
 
 var adjacent_offsets: Array[Vector2i] = [
 	Vector2i(1, 0),
@@ -37,7 +38,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_H:
+		if event.is_action_pressed(InputConfig.HARVEST_HOVERED_ACTION):
 			try_harvest_hovered_cell()
 
 func update_auto_harvesters() -> void:
@@ -80,26 +81,26 @@ func try_harvest_cell(grid_position: Vector2i, silent_if_not_ready: bool) -> voi
 	var object: Node = grid_system.get_object_at(grid_position)
 
 	if not object is PlaceableObject:
-		if not silent_if_not_ready:
+		if not silent_if_not_ready and log_actions:
 			print("No plant to harvest at ", grid_position)
 		return
 
 	var placeable: PlaceableObject = object as PlaceableObject
 
 	if not placeable.is_plant():
-		if not silent_if_not_ready:
+		if not silent_if_not_ready and log_actions:
 			print("Object is not a plant: ", placeable.display_name)
 		return
 
 	if not placeable.is_mature():
-		if not silent_if_not_ready:
+		if not silent_if_not_ready and log_actions:
 			print(placeable.display_name, " is not mature yet. Growth: ", round(placeable.growth), "%")
 		return
 
 	var harvest_data: Dictionary = placeable.harvest()
 
 	if harvest_data.is_empty():
-		if not silent_if_not_ready:
+		if not silent_if_not_ready and log_actions:
 			print("Nothing to harvest from ", placeable.display_name)
 		return
 
@@ -109,7 +110,7 @@ func try_harvest_cell(grid_position: Vector2i, silent_if_not_ready: bool) -> voi
 
 	inventory_system.add_item(item_id, item_name, amount)
 
-	if not silent_if_not_ready:
+	if not silent_if_not_ready and log_actions:
 		print("Harvested ", placeable.display_name, " at ", grid_position)
-	else:
+	elif log_actions:
 		print("Auto-harvested ", placeable.display_name, " at ", grid_position)

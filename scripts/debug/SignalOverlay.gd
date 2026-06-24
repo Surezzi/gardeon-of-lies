@@ -1,11 +1,24 @@
 extends Node2D
 class_name SignalOverlay
 
+signal overlay_changed(signal_name: String, visible_now: bool)
+
 @export var grid_system: GridSystem
 @export var signal_map_system: SignalMapSystem
 
 var selected_signal: String = ""
 var is_visible_overlay: bool = false
+var overlay_order: Array[String] = [
+	"heat",
+	"dryness",
+	"humidity",
+	"yellow_light",
+	"rot_smell",
+	"frog_sound",
+	"blue_light",
+	"cold",
+	"silence"
+]
 
 func _ready() -> void:
 	if grid_system == null:
@@ -20,48 +33,56 @@ func _process(_delta: float) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
-		match event.keycode:
-			KEY_Z:
-				set_signal("heat")
-
-			KEY_X:
-				set_signal("dryness")
-
-			KEY_C:
-				set_signal("humidity")
-
-			KEY_V:
-				set_signal("yellow_light")
-
-			KEY_N:
-				set_signal("rot_smell")
-
-			KEY_M:
-				set_signal("frog_sound")
-
-			KEY_A:
-				set_signal("blue_light")
-
-			KEY_S:
-				set_signal("cold")
-
-			KEY_D:
-				set_signal("silence")
-
-			KEY_B:
-				hide_overlay()
+		if event.is_action_pressed(&"overlay_heat"):
+			set_signal("heat")
+		elif event.is_action_pressed(&"overlay_dryness"):
+			set_signal("dryness")
+		elif event.is_action_pressed(&"overlay_humidity"):
+			set_signal("humidity")
+		elif event.is_action_pressed(&"overlay_yellow_light"):
+			set_signal("yellow_light")
+		elif event.is_action_pressed(&"overlay_rot_smell"):
+			set_signal("rot_smell")
+		elif event.is_action_pressed(&"overlay_frog_sound"):
+			set_signal("frog_sound")
+		elif event.is_action_pressed(&"overlay_blue_light"):
+			set_signal("blue_light")
+		elif event.is_action_pressed(&"overlay_cold"):
+			set_signal("cold")
+		elif event.is_action_pressed(&"overlay_silence"):
+			set_signal("silence")
+		elif event.is_action_pressed(&"overlay_hide"):
+			hide_overlay()
 
 func set_signal(signal_name: String) -> void:
 	selected_signal = signal_name
 	is_visible_overlay = true
-	print("Signal overlay: ", selected_signal)
+	overlay_changed.emit(selected_signal, true)
 	queue_redraw()
 
 func hide_overlay() -> void:
 	selected_signal = ""
 	is_visible_overlay = false
-	print("Signal overlay hidden")
+	overlay_changed.emit("", false)
 	queue_redraw()
+
+func toggle_signal(signal_name: String) -> void:
+	if is_visible_overlay and selected_signal == signal_name:
+		hide_overlay()
+		return
+
+	set_signal(signal_name)
+
+func get_overlay_entries() -> Array[Dictionary]:
+	var entries: Array[Dictionary] = []
+
+	for signal_name in overlay_order:
+		entries.append({
+			"signal_name": signal_name,
+			"selected": is_visible_overlay and selected_signal == signal_name
+		})
+
+	return entries
 
 func _draw() -> void:
 	if not is_visible_overlay:

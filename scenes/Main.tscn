@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://o0o1jx1oiee2" path="res://scripts/systems/gridsystem.gd" id="1_elqb8"]
 [ext_resource type="Script" uid="uid://dlcrjr53x4xj6" path="res://scripts/debug/GridDebugView.gd" id="2_rvslj"]
+[ext_resource type="Script" path="res://scripts/systems/InputConfig.gd" id="2_xjv2a"]
 [ext_resource type="Script" uid="uid://bnrb0ttqoyg0a" path="res://scripts/systems/BuildSystem.gd" id="3_0bbpv"]
 [ext_resource type="Script" uid="uid://b8ph48m7hhtfj" path="res://scripts/systems/PlantSystem.gd" id="4_rarhs"]
 [ext_resource type="Script" uid="uid://cw15duq0oeulx" path="res://scripts/systems/SignalMapSystem.gd" id="4_vcsgt"]
@@ -12,15 +13,30 @@
 [ext_resource type="Script" uid="uid://u2s8p2fv3obn" path="res://scripts/debug/SignalOverlay.gd" id="8_jlsqs"]
 [ext_resource type="Script" uid="uid://b1q0idbl8cfqg" path="res://scripts/systems/InventorySystem.gd" id="9_q8u5g"]
 [ext_resource type="Script" uid="uid://df444p2uqgpup" path="res://scripts/systems/HarvestSystem.gd" id="10_lhr70"]
+[ext_resource type="Script" path="res://scripts/ui/GameStatusPanel.gd" id="11_8g1sd"]
+[ext_resource type="Script" path="res://scripts/systems/CraftingSystem.gd" id="12_3kca1"]
+[ext_resource type="Script" path="res://scripts/ui/CraftingPanel.gd" id="12_g8tm2"]
+[ext_resource type="Script" path="res://scripts/ui/UIToggleBar.gd" id="12_ktog1"]
+[ext_resource type="Script" uid="uid://bdjqi30rrxgad" path="res://scripts/systems/TimerSystem.gd" id="13_qmy6f"]
+[ext_resource type="Script" path="res://scripts/camera/CameraController.gd" id="14_cam1"]
 
 [node name="Main" type="Node2D" unique_id=1640505783]
 
 [node name="GridSystem" type="Node2D" parent="." unique_id=436974779]
 script = ExtResource("1_elqb8")
 
-[node name="GridDebugView" type="Node2D" parent="." unique_id=1767147163 node_paths=PackedStringArray("grid_system")]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=436974780 node_paths=PackedStringArray("grid_system")]
+script = ExtResource("14_cam1")
+grid_system = NodePath("../GridSystem")
+
+[node name="GridDebugView" type="Node2D" parent="." unique_id=1767147163 node_paths=PackedStringArray("grid_system", "build_system", "selection_system")]
 script = ExtResource("2_rvslj")
 grid_system = NodePath("../GridSystem")
+build_system = NodePath("../BuildSystem")
+selection_system = NodePath("../SelectionSystem")
+
+[node name="InputConfig" type="Node" parent="." unique_id=1381002211]
+script = ExtResource("2_xjv2a")
 
 [node name="BuildSystem" type="Node2D" parent="." unique_id=1980696622 node_paths=PackedStringArray("grid_system", "object_root", "inventory_system")]
 script = ExtResource("3_0bbpv")
@@ -43,66 +59,180 @@ signal_map_system = NodePath("../SignalMapSystem")
 
 [node name="UIRoot" type="CanvasLayer" parent="." unique_id=738630192]
 
-[node name="PlantInspector" parent="UIRoot" unique_id=301042676 instance=ExtResource("6_c01mt")]
+[node name="UIToggleBar" type="PanelContainer" parent="UIRoot" unique_id=738630193 node_paths=PackedStringArray("left_sidebar", "right_sidebar")]
+offset_left = 360.0
+offset_top = 20.0
+offset_right = 760.0
+offset_bottom = 80.0
+script = ExtResource("12_ktog1")
+left_sidebar = NodePath("../LeftSidebar")
+right_sidebar = NodePath("../RightSidebar")
 
-[node name="InventoryPanel" type="PanelContainer" parent="UIRoot" unique_id=1980427145 node_paths=PackedStringArray("inventory_system")]
+[node name="MarginContainer" type="MarginContainer" parent="UIRoot/UIToggleBar" unique_id=738630194]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="UIRoot/UIToggleBar/MarginContainer" unique_id=738630195]
+layout_mode = 2
+
+[node name="LeftSidebar" type="MarginContainer" parent="UIRoot" unique_id=1301010990]
 offset_left = 20.0
 offset_top = 20.0
-offset_right = 280.0
-offset_bottom = 180.0
-script = ExtResource("7_wp0k4")
-inventory_system = NodePath("../../InventorySystem")
+offset_right = 340.0
+offset_bottom = 880.0
+theme_override_constants/margin_left = 0
+theme_override_constants/margin_top = 0
+theme_override_constants/margin_right = 0
+theme_override_constants/margin_bottom = 0
 
-[node name="MarginContainer" type="MarginContainer" parent="UIRoot/InventoryPanel" unique_id=1351360184]
+[node name="VBoxContainer" type="VBoxContainer" parent="UIRoot/LeftSidebar" unique_id=1301010991]
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 12
 
-[node name="VBoxContainer" type="VBoxContainer" parent="UIRoot/InventoryPanel/MarginContainer" unique_id=1052988433]
-layout_mode = 2
-
-[node name="TitleLabel" type="Label" parent="UIRoot/InventoryPanel/MarginContainer/VBoxContainer" unique_id=264521367]
-layout_mode = 2
-
-[node name="ItemsLabel" type="Label" parent="UIRoot/InventoryPanel/MarginContainer/VBoxContainer" unique_id=310303978]
-layout_mode = 2
-
-[node name="BuildPanel" type="PanelContainer" parent="UIRoot" unique_id=1632229012 node_paths=PackedStringArray("build_system")]
-anchors_preset = 3
+[node name="RightSidebar" type="MarginContainer" parent="UIRoot" unique_id=1301011001]
+anchors_preset = 9
 anchor_left = 1.0
-anchor_top = 1.0
+anchor_top = 0.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -517.0
-offset_top = -730.0
+offset_left = -460.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
 grow_horizontal = 0
-grow_vertical = 0
+grow_vertical = 2
+theme_override_constants/margin_left = 0
+theme_override_constants/margin_top = 0
+theme_override_constants/margin_right = 0
+theme_override_constants/margin_bottom = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UIRoot/RightSidebar" unique_id=1301011002]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="PlantInspector" parent="UIRoot/RightSidebar/VBoxContainer" unique_id=301042676 instance=ExtResource("6_c01mt")]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 250)
+
+[node name="GameStatusPanel" type="PanelContainer" parent="UIRoot/RightSidebar/VBoxContainer" unique_id=1811001152 node_paths=PackedStringArray("grid_system", "build_system", "selection_system", "signal_overlay", "inventory_system")]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 170)
+script = ExtResource("11_8g1sd")
+grid_system = NodePath("../../../../GridSystem")
+build_system = NodePath("../../../../BuildSystem")
+selection_system = NodePath("../../../../SelectionSystem")
+signal_overlay = NodePath("../../../../SignalOverlay")
+inventory_system = NodePath("../../../../InventorySystem")
+
+[node name="MarginContainer" type="MarginContainer" parent="UIRoot/RightSidebar/VBoxContainer/GameStatusPanel" unique_id=714100122]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UIRoot/RightSidebar/VBoxContainer/GameStatusPanel/MarginContainer" unique_id=714100123]
+layout_mode = 2
+
+[node name="ObjectiveLabel" type="Label" parent="UIRoot/RightSidebar/VBoxContainer/GameStatusPanel/MarginContainer/VBoxContainer" unique_id=714100124]
+layout_mode = 2
+autowrap_mode = 3
+
+[node name="HoverLabel" type="Label" parent="UIRoot/RightSidebar/VBoxContainer/GameStatusPanel/MarginContainer/VBoxContainer" unique_id=714100125]
+layout_mode = 2
+autowrap_mode = 3
+
+[node name="SelectedLabel" type="Label" parent="UIRoot/RightSidebar/VBoxContainer/GameStatusPanel/MarginContainer/VBoxContainer" unique_id=714100126]
+layout_mode = 2
+autowrap_mode = 3
+
+[node name="OverlayLabel" type="Label" parent="UIRoot/RightSidebar/VBoxContainer/GameStatusPanel/MarginContainer/VBoxContainer" unique_id=714100127]
+layout_mode = 2
+autowrap_mode = 3
+
+[node name="HintLabel" type="Label" parent="UIRoot/RightSidebar/VBoxContainer/GameStatusPanel/MarginContainer/VBoxContainer" unique_id=714100128]
+layout_mode = 2
+autowrap_mode = 3
+
+[node name="InventoryPanel" type="PanelContainer" parent="UIRoot/LeftSidebar/VBoxContainer" unique_id=1980427145 node_paths=PackedStringArray("inventory_system")]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 180)
+script = ExtResource("7_wp0k4")
+inventory_system = NodePath("../../../../InventorySystem")
+
+[node name="MarginContainer" type="MarginContainer" parent="UIRoot/LeftSidebar/VBoxContainer/InventoryPanel" unique_id=1351360184]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UIRoot/LeftSidebar/VBoxContainer/InventoryPanel/MarginContainer" unique_id=1052988433]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="UIRoot/LeftSidebar/VBoxContainer/InventoryPanel/MarginContainer/VBoxContainer" unique_id=264521367]
+layout_mode = 2
+
+[node name="ItemsLabel" type="Label" parent="UIRoot/LeftSidebar/VBoxContainer/InventoryPanel/MarginContainer/VBoxContainer" unique_id=310303978]
+layout_mode = 2
+
+[node name="CraftingPanel" type="PanelContainer" parent="UIRoot/LeftSidebar/VBoxContainer" unique_id=1980427146 node_paths=PackedStringArray("crafting_system")]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+custom_minimum_size = Vector2(0, 280)
+script = ExtResource("12_g8tm2")
+crafting_system = NodePath("../../../../CraftingSystem")
+
+[node name="MarginContainer" type="MarginContainer" parent="UIRoot/LeftSidebar/VBoxContainer/CraftingPanel" unique_id=1980427147]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UIRoot/LeftSidebar/VBoxContainer/CraftingPanel/MarginContainer" unique_id=1980427148]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="UIRoot/LeftSidebar/VBoxContainer/CraftingPanel/MarginContainer/VBoxContainer" unique_id=1980427149]
+layout_mode = 2
+
+[node name="HelpLabel" type="Label" parent="UIRoot/LeftSidebar/VBoxContainer/CraftingPanel/MarginContainer/VBoxContainer" unique_id=1980427150]
+layout_mode = 2
+
+[node name="RecipeScroll" type="ScrollContainer" parent="UIRoot/LeftSidebar/VBoxContainer/CraftingPanel/MarginContainer/VBoxContainer" unique_id=1980427151]
+layout_mode = 2
+
+[node name="RecipeContainer" type="VBoxContainer" parent="UIRoot/LeftSidebar/VBoxContainer/CraftingPanel/MarginContainer/VBoxContainer/RecipeScroll" unique_id=1980427152]
+layout_mode = 2
+
+[node name="BuildPanel" type="PanelContainer" parent="UIRoot/RightSidebar/VBoxContainer" unique_id=1632229012 node_paths=PackedStringArray("build_system")]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+custom_minimum_size = Vector2(0, 280)
 script = ExtResource("8_bjd11")
-build_system = NodePath("../../BuildSystem")
+build_system = NodePath("../../../../BuildSystem")
 
-[node name="MarginContainer" type="MarginContainer" parent="UIRoot/BuildPanel" unique_id=69931840]
+[node name="MarginContainer" type="MarginContainer" parent="UIRoot/RightSidebar/VBoxContainer/BuildPanel" unique_id=69931840]
 layout_mode = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="UIRoot/BuildPanel/MarginContainer" unique_id=1490129467]
+[node name="VBoxContainer" type="VBoxContainer" parent="UIRoot/RightSidebar/VBoxContainer/BuildPanel/MarginContainer" unique_id=1490129467]
 layout_mode = 2
 
-[node name="TitleLabel" type="Label" parent="UIRoot/BuildPanel/MarginContainer/VBoxContainer" unique_id=435367694]
+[node name="TitleLabel" type="Label" parent="UIRoot/RightSidebar/VBoxContainer/BuildPanel/MarginContainer/VBoxContainer" unique_id=435367694]
 layout_mode = 2
 
-[node name="SelectedLabel" type="Label" parent="UIRoot/BuildPanel/MarginContainer/VBoxContainer" unique_id=1049637985]
+[node name="SelectedLabel" type="Label" parent="UIRoot/RightSidebar/VBoxContainer/BuildPanel/MarginContainer/VBoxContainer" unique_id=1049637985]
 layout_mode = 2
 
-[node name="CostLabel" type="Label" parent="UIRoot/BuildPanel/MarginContainer/VBoxContainer" unique_id=1837631484]
+[node name="CostLabel" type="Label" parent="UIRoot/RightSidebar/VBoxContainer/BuildPanel/MarginContainer/VBoxContainer" unique_id=1837631484]
 layout_mode = 2
 
-[node name="HelpLabel" type="Label" parent="UIRoot/BuildPanel/MarginContainer/VBoxContainer" unique_id=1995068667]
+[node name="HelpLabel" type="Label" parent="UIRoot/RightSidebar/VBoxContainer/BuildPanel/MarginContainer/VBoxContainer" unique_id=1995068667]
 layout_mode = 2
 
-[node name="Separator" type="HSeparator" parent="UIRoot/BuildPanel/MarginContainer/VBoxContainer" unique_id=2107309366]
+[node name="Separator" type="HSeparator" parent="UIRoot/RightSidebar/VBoxContainer/BuildPanel/MarginContainer/VBoxContainer" unique_id=2107309366]
 layout_mode = 2
 
 [node name="SelectionSystem" type="Node2D" parent="." unique_id=956946044 node_paths=PackedStringArray("grid_system", "plant_inspector")]
 script = ExtResource("7_nxtc6")
 grid_system = NodePath("../GridSystem")
-plant_inspector = NodePath("../UIRoot/PlantInspector")
+plant_inspector = NodePath("../UIRoot/RightSidebar/VBoxContainer/PlantInspector")
 
 [node name="SignalOverlay" type="Node2D" parent="." unique_id=1232515798 node_paths=PackedStringArray("grid_system", "signal_map_system")]
 script = ExtResource("8_jlsqs")
@@ -112,10 +242,17 @@ signal_map_system = NodePath("../SignalMapSystem")
 [node name="InventorySystem" type="Node2D" parent="." unique_id=1220725978]
 script = ExtResource("9_q8u5g")
 
+[node name="CraftingSystem" type="Node2D" parent="." unique_id=1220725979 node_paths=PackedStringArray("inventory_system")]
+script = ExtResource("12_3kca1")
+inventory_system = NodePath("../InventorySystem")
+
 [node name="HarvestSystem" type="Node2D" parent="." unique_id=1012296882 node_paths=PackedStringArray("grid_system", "object_root", "inventory_system")]
 script = ExtResource("10_lhr70")
 grid_system = NodePath("../GridSystem")
 object_root = NodePath("../ObjectRoot")
 inventory_system = NodePath("../InventorySystem")
 
-[node name="TimerSystem" type="Node2D" parent="." unique_id=339959663]
+[node name="TimerSystem" type="Node2D" parent="." unique_id=339959663 node_paths=PackedStringArray("grid_system", "object_root")]
+script = ExtResource("13_qmy6f")
+grid_system = NodePath("../GridSystem")
+object_root = NodePath("../ObjectRoot")

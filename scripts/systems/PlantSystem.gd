@@ -10,6 +10,11 @@ var update_timer: float = 0.0
 
 var debug_print_interval: float = 1.0
 var debug_print_timer: float = 0.0
+var debug_enabled: bool = false
+
+var phase_memory_gain_rate: float = 10.0
+var phase_memory_decay_rate: float = 3.0
+var phase_match_threshold: float = 70.0
 
 func _ready() -> void:
 	if grid_system == null:
@@ -23,11 +28,14 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	update_timer += delta
-	debug_print_timer += delta
-
 	if update_timer >= update_interval:
 		update_timer = 0.0
 		update_plants(update_interval)
+
+	if not debug_enabled:
+		return
+
+	debug_print_timer += delta
 
 	if debug_print_timer >= debug_print_interval:
 		debug_print_timer = 0.0
@@ -53,11 +61,19 @@ func update_plant(plant: PlaceableObject, delta: float) -> void:
 	var positive: float = sum_signal_values(positive_signals)
 	var negative: float = sum_signal_values(negative_signals)
 
-	var belief: float = float(clamp(positive - negative, 0.0, 100.0))
+	var new_phase_memory: Dictionary = update_phase_memory(plant, signals, delta)
+	var phase_score: float = calculate_phase_score(new_phase_memory)
+
+	var belief: float = 0.0
+
+	if plant.required_phases.is_empty():
+		belief = float(clamp(positive - negative, 0.0, 100.0))
+	else:
+		belief = float(clamp(phase_score - negative, 0.0, 100.0))
+
 	var suspicion: float = calculate_suspicion(plant, signals)
 
 	var growth_rate: float = belief - suspicion
-
 	var new_growth: float = plant.growth
 
 	if growth_rate >= plant.growth_threshold:
@@ -73,8 +89,64 @@ func update_plant(plant: PlaceableObject, delta: float) -> void:
 		new_growth,
 		positive_signals,
 		negative_signals,
-		signals
+		signals,
+		new_phase_memory,
+		phase_score
 	)
+
+func update_phase_memory(plant: PlaceableObject, signals: Dictionary, delta: float) -> Dictionary:
+	var new_memory: Dictionary = Dictionary(plant.phase_memory)
+
+	if plant.required_phases.is_empty():
+		return new_memory
+
+	for phase_name_variant in plant.required_phases.keys():
+		var phase_name: String = String(phase_name_variant)
+		var requirements: Dictionary = Dictionary(plant.required_phases[phase_name_variant])
+		var match_score: float = calculate_phase_match(requirements, signals)
+
+		var current_memory: float = float(new_memory.get(phase_name, 0.0))
+
+		if match_score >= phase_match_threshold:
+			current_memory += delta * phase_memory_gain_rate
+		else:
+			current_memory -= delta * phase_memory_decay_rate
+
+		current_memory = float(clamp(current_memory, 0.0, 100.0))
+		new_memory[phase_name] = current_memory
+
+	return new_memory
+
+func calculate_phase_match(requirements: Dictionary, signals: Dictionary) -> float:
+	if requirements.is_empty():
+		return 0.0
+
+	var total_required: float = 0.0
+	var total_matched: float = 0.0
+
+	for signal_name_variant in requirements.keys():
+		var signal_name: String = String(signal_name_variant)
+		var required_amount: float = float(requirements[signal_name_variant])
+		var current_amount: float = float(signals.get(signal_name, 0.0))
+
+		total_required += required_amount
+		total_matched += min(current_amount, required_amount)
+
+	if total_required <= 0.0:
+		return 0.0
+
+	return float(clamp((total_matched / total_required) * 100.0, 0.0, 100.0))
+
+func calculate_phase_score(memory: Dictionary) -> float:
+	if memory.is_empty():
+		return 0.0
+
+	var total: float = 0.0
+
+	for phase_name_variant in memory.keys():
+		total += float(memory[phase_name_variant])
+
+	return total / float(memory.size())
 
 func get_positive_signals(plant: PlaceableObject, signals: Dictionary) -> Dictionary:
 	var result: Dictionary = {}
@@ -149,5 +221,7 @@ func debug_print_plants() -> void:
 					" | suspicion: ",
 					round(plant.suspicion),
 					" | growth: ",
-					round(plant.growth)
+					round(plant.growth),
+					" | phase: ",
+					round(plant.phase_score)
 				)
